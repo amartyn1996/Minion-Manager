@@ -109,9 +109,9 @@
         </td>
 
         <td v-show="shouldShowMinion(minion)" v-for="(minion, mindex) in data.minions" :key="mindex" class="minion-column" v-bind:class="{ 'selected-full-border': minion.highlighted }" v-bind:style="{'min-width': columnWidth, 'max-width': columnWidth}">
-          <table>
+          <table v-bind:style="{'width': columnWidth}">
             <tr>
-              <td class="minion-cell clickable-cell" v-bind:style="{'width': columnWidth}" @click="minion.highlighted = !minion.highlighted">{{ (!data.useNicknames || minion.nickname == "") ? minion.name : minion.nickname}}</td>
+              <td class="minion-cell clickable-cell">{{ (!data.useNicknames || minion.nickname == "") ? minion.name : minion.nickname}}</td>
             </tr>
             <tr>
               <td class="minion-cell clickable-cell" v-bind:class="{ deactivated: (minion.hitPointTotal <= 0) }"><input type="number" min="0" v-model="minion.hitPointTotal"></td>
@@ -216,9 +216,9 @@
           </td>
 
           <td v-for="(minion, mindex) in data.minions" :key="mindex" class="minion-column">
-            <table>
+            <table v-bind:style="{'width': columnWidth}">
               <tr>
-                <td class="minion-cell clickable-cell" v-bind:style="{'min-width': columnWidth, 'max-width': columnWidth}"><input type="text" v-model="minion.name"></td>
+                <td class="minion-cell clickable-cell"><input type="text" v-model="minion.name"></td>
               </tr>
               <tr>
                 <td class="minion-cell clickable-cell"><input type="text" v-model="minion.nickname"></td>
