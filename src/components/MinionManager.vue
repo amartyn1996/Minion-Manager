@@ -90,12 +90,12 @@
             <tr>
               <td class="minion-cell">Weapon</td>
             </tr>
-            <!-- <tr>
-              <td class="minion-cell">Critical Confirmation</td>
+            <tr v-if="data.enableHomebrewCriticals">
+              <td class="minion-cell clickable-cell" @click="rollCriticalConfirmations()">Critical Confirmation</td>
             </tr>
-            <tr>
-              <td class="minion-cell">Critical Multiplier</td>
-            </tr> -->
+            <tr v-if="data.enableHomebrewCriticals">
+              <td class="minion-cell clickable-cell" @click="rollCriticalMultipliers()">Critical Multiplier</td>
+            </tr>
             <tr>
               <td class="minion-cell">Check (Dis)Advantage</td>
             </tr>
@@ -123,7 +123,7 @@
               <td class="minion-cell" v-bind:style="{'background-color': getAttackColor(minion)}">{{getAttackTotal(minion)}}</td>
             </tr>
             <tr>
-              <td class="minion-cell clickable-cell" v-bind:class="{ active: (minion.addToDamageTotal && getAttackTotal(minion) >= data.targetAC), deactivated: (minion.addToDamageTotal && getAttackTotal(minion) < data.targetAC) }" @click="minion.addToDamageTotal = !minion.addToDamageTotal">{{getDamageTotal(minion)}}</td>
+              <td class="minion-cell clickable-cell" v-bind:class="{ active: doesAttackHit(minion), deactivated: !doesAttackHit(minion) }" @click="minion.addToDamageTotal = !minion.addToDamageTotal">{{getDamageTotal(minion)}}</td>
             </tr>
             <tr>
               <td class="minion-cell clickable-cell" v-bind:style="{'background-color': minion.attackRollMode.color}" @click="toggleAttackRollMode(minion)">{{data.useNicknames ? minion.attackRollMode.abbreviation : minion.attackRollMode.type}}</td>
@@ -135,12 +135,12 @@
                 </select>
               </td>
             </tr>
-            <!-- <tr>
+            <tr v-if="data.enableHomebrewCriticals" v-bind:class="{ 'check-fail': (isAttackCriticalFailure(minion) && (!isConfirmationSuccess(minion))), 'check-pass': (isAttackCriticalSuccess(minion) && (isConfirmationSuccess(minion)) && (minion.criticalConfirmationRoll < 20)), 'very-green': (isAttackCriticalSuccess(minion) && (minion.criticalConfirmationRoll == 20)) }">
               <td class="minion-cell">{{!isAttackCritical(minion) ? '-' : minion.criticalConfirmationRoll}}</td>
             </tr>
-            <tr>
-              <td class="minion-cell">{{!isAttackCritical(minion) ? '-' : minion.criticalMultiplierRoll}}</td>
-            </tr> -->
+            <tr v-if="data.enableHomebrewCriticals">
+              <td class="minion-cell">{{(!isAttackCritical(minion) || !isAttackCriticalSuccess(minion) || !isConfirmationSuccess(minion)) ? '-' : minion.criticalMultiplierRoll}}</td>
+            </tr>
             <tr>
               <td class="minion-cell clickable-cell" v-bind:style="{'background-color': minion.checkRollMode.color}" @click="toggleCheckRollMode(minion)">{{data.useNicknames ? minion.checkRollMode.abbreviation : minion.checkRollMode.type}}</td>
             </tr>
@@ -170,12 +170,19 @@
             <tr>
               <td class="minion-cell">{{damageTotal}}</td>
             </tr>
-            <tr v-for="i in ((data.showChecks ? data.checks.length : 0) + 4)" :key="i">
+            <tr v-for="i in ((data.showChecks ? data.checks.length : 0) + (data.enableHomebrewCriticals ? 2 : 0) + 4)" :key="i">
               <td class="minion-cell">-</td>
             </tr>
 
           </table>
         </td>
+      </tr>
+    </table>
+
+    <br/>
+    <table v-if="data.mode == 'normal'">
+      <tr>
+        <td class="clickable-cell" style="width: 300px;" @click="data.enableHomebrewCriticals = !data.enableHomebrewCriticals">{{'Homebrew Criticals ' + (data.enableHomebrewCriticals ?  'Enabled' : 'Disabled')}}</td>
       </tr>
     </table>
 
@@ -379,6 +386,7 @@ export default {
         highlightedRow: '',
         selectedDamage: 0,
         showChecks: true,
+        enableHomebrewCriticals: false,
         shouldApplyDamageConditionally: false,
         damageCondition: 'On Failed Save/Check',
         noDamageOnConditionFail: false,
@@ -439,7 +447,7 @@ export default {
     damageTotal: function () {
       let total = 0;
       this.data.minions.forEach((minion) => {
-        if (minion.addToDamageTotal && !this.isMinionDead(minion) && !this.isAttackCriticalFailure(minion) && this.getAttackTotal(minion) >= this.data.targetAC) {
+        if (this.doesAttackHit(minion)) {
           total += this.getDamageTotal(minion);
         }
       });
@@ -509,8 +517,8 @@ export default {
       minion.attackRollMode = this.data.rerollModes.find(type => type.type === "normal");
       minion.checkRollMode = this.data.rerollModes.find(type => type.type === "normal");
       minion.weapons = [
-        {name: "short bow", nickname: "sBow", attackMod: 0, damageDice: [6], damageMod: 0},
-        {name: "short sword", nickname: "sSrd", attackMod: 0, damageDice: [6], damageMod: 0}];
+        {name: "short bow", nickname: "sBow", attackMod: 4, damageDice: [6], damageMod: 2},
+        {name: "short sword", nickname: "sSrd", attackMod: 4, damageDice: [6], damageMod: 2}];
       minion.selectedWeapon = minion.weapons[0];
       minion.attackDie = 20;
       minion.criticalMultiplierDie = 4;
@@ -548,6 +556,16 @@ export default {
         this.rollCheck(minion);
       });
     },
+    rollCriticalConfirmations() {
+      this.data.minions.forEach( (minion) => {
+        this.rollCriticalConfirmation(minion);
+      });
+    },
+    rollCriticalMultipliers() {
+      this.data.minions.forEach( (minion) => {
+        this.rollCriticalMultiplier(minion);
+      });
+    },
     reroll() {
       this.rollAttacks();
       this.rollDamages();
@@ -557,8 +575,8 @@ export default {
       minion.attackRolls = [];
       minion.attackRolls.push(this.rollDie(minion.attackDie));
       minion.attackRolls.push(this.rollDie(minion.attackDie));
-      minion.criticalConfirmationRoll = this.rollDie(minion.attackDie);
-      minion.criticalMultiplierRoll = this.rollDie(minion.criticalMultiplierDie);
+      this.rollCriticalConfirmation(minion);
+      this.rollCriticalMultiplier(minion);
     },
     rollDamage(minion) {
       minion.damageRolls = [];
@@ -568,6 +586,12 @@ export default {
       minion.checkRolls = [];
       minion.checkRolls.push(this.rollDie(20));
       minion.checkRolls.push(this.rollDie(20));
+    },
+    rollCriticalConfirmation(minion) {
+      minion.criticalConfirmationRoll = this.rollDie(minion.attackDie);
+    },
+    rollCriticalMultiplier(minion) {
+      minion.criticalMultiplierRoll = this.rollDie(minion.criticalMultiplierDie);
     },
     getAttackRoll(minion) {
       switch(minion.attackRollMode.type) {
@@ -596,11 +620,20 @@ export default {
       let diceTotal = minion.damageRolls.reduce( (accum, prev) => accum + prev );
       let damage = 0;
       if (this.isAttackCriticalSuccess(minion)) {
-        damage = diceTotal * 2;
+        if (this.data.enableHomebrewCriticals && minion.criticalConfirmationRoll == 20) {
+          damage = minion.selectedWeapon.damageDice.reduce( (accum, prev) => accum + prev );
+        } else {
+          damage = diceTotal * 2;
+        }
+      } else if (this.isAttackCriticalFailure(minion)){
+        //Do nothing
       } else {
         damage = diceTotal;
       }
       damage += parseInt(minion.selectedWeapon.damageMod,10);
+      if (this.data.enableHomebrewCriticals && this.isConfirmationSuccess(minion)) {
+        damage = damage * minion.criticalMultiplierRoll;
+      }
       return damage;
     },
     getCheckTotal(minion, check) {
@@ -851,6 +884,15 @@ export default {
     },
     toggleDamageExtent() {
       this.data.noDamageOnConditionFail = !this.data.noDamageOnConditionFail;
+    },
+    doesAttackHit(minion) {
+      return minion.addToDamageTotal && 
+            !this.isMinionDead(minion) && 
+            !this.isAttackCriticalFailure(minion) && 
+            (this.isAttackCriticalSuccess(minion) || this.getAttackTotal(minion) >= this.data.targetAC);
+    },
+    isConfirmationSuccess(minion) {
+      return minion.criticalConfirmationRoll > 10;
     }
   }
 
@@ -914,6 +956,9 @@ export default {
   .double-selected-row-border {
     border-top: 3px solid blue;
     border-bottom: 3px solid blue;
+  }
+  .very-green {
+    background-color: #55ff55;
   }
   input[type="number"]::-webkit-outer-spin-button,
   input[type="number"]::-webkit-inner-spin-button {
