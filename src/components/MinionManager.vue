@@ -123,7 +123,7 @@
               <td class="minion-cell" v-bind:style="{'background-color': getAttackColor(minion)}">{{getAttackTotal(minion)}}</td>
             </tr>
             <tr>
-              <td class="minion-cell clickable-cell" v-bind:class="{ active: doesAttackHit(minion), deactivated: !doesAttackHit(minion) }" @click="minion.addToDamageTotal = !minion.addToDamageTotal">{{getDamageTotal(minion)}}</td>
+              <td class="minion-cell clickable-cell" v-bind:class="{ active: doesAttackHit(minion) && minion.addToDamageTotal, deactivated: !doesAttackHit(minion) && minion.addToDamageTotal }" @click="minion.addToDamageTotal = !minion.addToDamageTotal">{{getDamageTotal(minion)}}</td>
             </tr>
             <tr>
               <td class="minion-cell clickable-cell" v-bind:style="{'background-color': minion.attackRollMode.color}" @click="toggleAttackRollMode(minion)">{{data.useNicknames ? minion.attackRollMode.abbreviation : minion.attackRollMode.type}}</td>
