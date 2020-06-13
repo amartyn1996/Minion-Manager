@@ -434,7 +434,7 @@ export default {
     };
   },
   mounted () {
-    for (let i = 0; i < 12; i++) {
+    for (let i = 0; i < 100; i++) {
       this.data.minions.push(this.buildDefaultMinion());
       this.data.minions[i].name += ' ' + (i + 1);
       this.data.minions[i].nickname += ' ' + (i + 1);
