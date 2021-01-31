@@ -38,6 +38,8 @@ export default class StateToPrimaryTableInterface extends StateToTableInterface 
 			this._populate_ui_from_minion_values(minion, center_column);
 		}
 
+		this._populate_ui_row_check_border(state, table);
+
 		table.end_column['cell_damage'].value = state.total_damage;
 
 	}
@@ -174,6 +176,48 @@ export default class StateToPrimaryTableInterface extends StateToTableInterface 
 		primary_table_column.cell_weapon.value = {};
 		primary_table_column.cell_weapon.value.selected_option = minion.selected_weapon.nickname;
 		primary_table_column.cell_weapon.value.options = minion.weapons.map(weapon => weapon.nickname);
+	}
+
+	_populate_ui_row_check_border(state, table) {
+		let begin_column = table.begin_column;
+		let center_columns = table.center_columns;
+
+		center_columns.forEach(column => {
+			if (column.cell_name.click_state % 2 == 1) {
+				column.cell_name.background_color = Constants.blue;
+				column.cell_name.hover_background_color = Constants.light_blue;
+			} else {
+				column.cell_name.background_color = Constants.grey;
+				column.cell_name.hover_background_color = Constants.light_grey;
+			}
+		});
+
+		for (let check in Constants.checks) {
+			let name = 'cell_' + Constants.convert_check_to_variable_name(check);
+			let cell_check_begin = begin_column[name];
+			let is_check_selected = cell_check_begin.click_state % 2 == 1;
+			center_columns.forEach(column => {
+				let is_column_selected = column.cell_name.click_state % 2 == 1;
+				let cell = column[name];
+				if (is_check_selected && is_column_selected) {
+					cell.background_color = Constants.red;
+				} else if (is_check_selected) {
+					cell.background_color = Constants.green;
+				} else if (is_column_selected) {
+					cell.background_color = Constants.blue;
+				} else {
+					cell.background_color = Constants.grey;
+				}
+			});
+
+			if (is_check_selected) {
+				cell_check_begin.background_color = Constants.green;
+				cell_check_begin.hover_background_color = Constants.light_green;
+			} else {
+				cell_check_begin.background_color = Constants.grey;
+				cell_check_begin.hover_background_color = Constants.light_grey;
+			}
+		}
 	}
 
 	/* --- update_state_from_table helpers --- */

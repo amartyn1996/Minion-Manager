@@ -37,6 +37,7 @@ export default class PrimaryTable extends Table {
 			let name = 'cell_' + Constants.convert_check_to_variable_name(check);
 			config.push({ name: name, cell_type: 'default' });
 		}
+		config.push({ name: 'cell_notes', cell_type: 'input', input_type: 'text' });
 		return config;
 	}
 
@@ -81,6 +82,8 @@ export default class PrimaryTable extends Table {
 		});
 
 		this._populate_column_with_default_values(column);
+		column.cell_notes.background_color = Constants.light_grey;
+		this._make_cell_toggleable(column.cell_name);
 		this._make_cell_toggleable(column.cell_damage);
 		this._make_cell_toggleable(column.cell_attack_advantage);
 		this._make_cell_toggleable(column.cell_check_advantage);
@@ -111,9 +114,11 @@ export default class PrimaryTable extends Table {
 		column.cell_weapon = { value: 'Weapon' };
 		column.cell_check_advantage = { value: 'Check (Dis)Advantage' };
 		column.cell_check = { value: 'Check Roll' };
+		column.cell_notes = { value: 'Notes' };
 		for (let check in Constants.checks) {
 			let name = 'cell_' + Constants.convert_check_to_variable_name(check);
-			column[name] = { value: check }
+			column[name] = { value: check };
+			this._make_cell_toggleable(column[name]);
 		}
 		this._populate_column_with_default_values(column);
 		this._make_cell_toggleable(column.cell_damage);

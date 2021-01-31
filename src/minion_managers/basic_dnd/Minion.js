@@ -8,6 +8,7 @@ export default class Minion {
 		this.hit_points = 13;
 		this.max_hit_points = 13;
 		this.armor_class = 13;
+		this.notes = '';
 
 		this.proficiency_mod = 2; //modifier is half the challenge rating
 		this.str_mod = 0;
