@@ -24,6 +24,9 @@ export default class StateToPrimaryTableInterface extends StateToTableInterface 
 				}
 			}
 			center_columns[0].cell_import.files = undefined;
+			let stateStr = JSON.stringify(state, null, 4);
+			let dataUri = 'data:application/json;charset=utf-8,'+ encodeURIComponent(stateStr);
+			center_columns[0].cell_export.href = dataUri;
 		}
 	}
 
